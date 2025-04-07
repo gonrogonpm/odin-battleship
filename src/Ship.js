@@ -28,7 +28,7 @@ export class Ship {
             throw TypeError(`length must be a number, received type: ${typeof length}`);
         }
 
-        if (length < MIN_LENGTH || length > MAX_LENGTH) {
+        if (length < Ship.MIN_LENGTH || length > Ship.MAX_LENGTH) {
             throw RangeError(`length must be between ${Ship.MIN_LENGTH} and ${Ship.MAX_LENGTH}, received: ${length}`);
         }
 
