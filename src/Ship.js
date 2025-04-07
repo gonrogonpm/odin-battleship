@@ -1,3 +1,5 @@
+import { ShipType } from './ShipType.js';
+
 /**
  * Defines a ship in the battleship game.
  */
@@ -18,21 +20,29 @@ export class Ship {
     #hits = 0;
 
     /**
-     * Creates an instance of a ship.
-     * @param {number} length - The length of the ship (must be between MIN_LENGTH and MAX_LENGTH).
-     * @throws {TypeError} if length is not a number.
-     * @throws {RangeError} if length is out of the valid range.
+     * Type of ship.
      */
-    constructor(length) {
-        if (typeof length !== 'number') {
-            throw TypeError(`length must be a number, received type: ${typeof length}`);
-        }
+    #type = 0;
 
-        if (length < Ship.MIN_LENGTH || length > Ship.MAX_LENGTH) {
-            throw RangeError(`length must be between ${Ship.MIN_LENGTH} and ${Ship.MAX_LENGTH}, received: ${length}`);
+    /**
+     * Creates an instance of a ship based on its type.
+     * @param {number} type - The type of the ship (must be a valid value from ShipType enum).
+     * @throws {TypeError} if the provided type is not a valid ship type.
+     */
+    constructor(type) {
+        if (!ShipType.isValid(type)) {
+            throw TypeError(`invalid ship type, received ${type}`);
         }
-
-        this.#length = length;
+        // Set the length for each ship type.
+        switch (type) {
+            case ShipType.CARRIER:    this.#length = 5; break;
+            case ShipType.BATTLESHIP: this.#length = 4; break;
+            case ShipType.DESTROYER:  this.#length = 3; break;
+            case ShipType.SUBMARINE:  this.#length = 3; break;
+            default:                  this.#length = 2; break;
+        }
+        // Save the ship type.
+        this.#type = type;
     }
 
     /**
@@ -49,6 +59,14 @@ export class Ship {
      */
     get hits() { 
         return this.#hits;
+    }
+
+    /**
+     * Gets the ship type.
+     * @returns {number}
+     */
+    get type() { 
+        return this.#type;
     }
 
     /**
