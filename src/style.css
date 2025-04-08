@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+
+/**************************************************************
+ Root variables (theme)
+**************************************************************/
+
+:root {
+    /* Fonts - Define font families */
+    --font-family-base: Rubik, sans-serif;
+
+    /* Background colors */
+    --color-background: #222;
+
+    /* Text colors - Define text colors for different contexts */
+    --color-text-primary: #aaa;
+    --color-text-ui: #dda836;
+
+    /* Boxes */
+    --color-border-primary: #866300;
+
+    /* Main font - Apply default font settings to the root element */
+    font-family: var(--font-family-base);
+    color: var(--color-text-primary);
+}
+
+/**************************************************************
+ Base Styles (reset and HTML elements)
+**************************************************************/
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+input, button, textarea {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    min-width: 0;
+}
+
+body {
+    background-color: var(--color-background);
+}
+
+/**************************************************************
+ Layout
+**************************************************************/
+
+main {
+    min-height: 100vh;
+    min-height: 100dvh;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin: 0 auto;
+    /* Calculate the padding proportional to viewport width for a minimum of 16px for a viewport of 300px or less
+       and 32px for a viewport of 500px or more */
+    padding: calc(16px + 8 * clamp(0px, calc(1vw - 3px), 2px));    
+}
+
+#console {
+    border: 1px solid var(--color-border-primary);
+    padding: 1rem;
+}
+
+.display .info {
+    padding-bottom: 2rem;
+    font-size: 1.2rem;
+    text-align: center;
+    text-transform: capitalize;
+    color: var(--color-text-ui);
+}
+
+.display.hidden {
+    display: none;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    border: 1px solid var(--color-border-primary);
+}
+
+.board .row {
+    display: contents;
+}
+
+.board .cell {
+    aspect-ratio: 1;
+    border: 1px solid var(--color-border-primary);
+    border-right:  0;
+    border-bottom: 0;
+}
+
+/* Remove the extra border for the first row and first column. */
+.board .cell.y-0 { border-top:  0; }
+.board .cell.x-0 { border-left: 0; }
+
+/**************************************************************
+ Target
+**************************************************************/
+
+#target {
+    display: block;
+    position: absolute;
+    pointer-events: none;
+}
