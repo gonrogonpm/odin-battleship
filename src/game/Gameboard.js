@@ -1,9 +1,9 @@
 import { Ship } from './Ship.js';
 import { Orientation } from './Orientation.js';
 
-const GameboardWidth  = 10;
-const GameboardHeight = 10;
-const WaterValue      = -1;
+export const GameboardWidth  = 10;
+export const GameboardHeight = 10;
+export const WaterValue      = -1;
 
 /**
  * Defines the game board for a battleship game.
@@ -12,6 +12,18 @@ const WaterValue      = -1;
 export class Gameboard {
     /** @private @type {Ship[]} Array storing the ship objects placed on the board. */
     #ships;
+    /**
+     * @typedef {object} ShipLocation
+     * @property {number} orientation - Orientation of the ship.
+     * @property {number} x - X-coordinate of the start position of the ship.
+     * @property {number} y - Y-coordinate of the start position of the ship.
+     */
+    /** 
+     * Array storing the location of each ship placed on the board an object with orientation, x-coordinate of the
+     * ship start and y-coordinate of the ship start]. 
+     * @private @type {ShipLocation[]}
+     */
+    #shipsLocation;
     /** @private @type {number[]} 1D array representing the board grid. Stores WaterValue (-1) or the index of the ship in #ships. */
     #board;
     /** @private @type {number[]} 1D array tracking the number of shots, 0 = not shot, > 0 = shot. */
@@ -75,6 +87,21 @@ export class Gameboard {
     }
 
     /**
+     * Gets the location of a ship.
+     * @param {number} type - The type of the ship (use a value from the ShipType enum).
+     * @returns {ShipLocation} An object with the location of the ship.
+     * @throws {Error} If there is no ship of the specified type.
+     */
+    getShipLocation(type) {
+        const index = this.#ships.findIndex(ship => ship.type === type);
+        if (index < 0) {
+            throw Error(`ship type location not found, received: ${type}`);
+        }
+
+        return this.#shipsLocation[index];
+    }
+
+    /**
      * Attempts to place a ship of a given type at the specified coordinates and orientation.
      * Performs checks for boundaries and overlaps.
      * @param {number} x - The starting x-coordinate of the ship (top-leftmost part).
@@ -88,6 +115,10 @@ export class Gameboard {
     placeShip(x, y, orientation, type) {
         if (!Orientation.isValid(orientation)) {
             throw TypeError(`orientation must be a valid orientation, received: ${orientation}`);
+        }
+
+        if (this.#ships.findIndex(ship => ship.type === type) >= 0) {
+            return false;
         }
 
         const ship = new Ship(type);
@@ -124,6 +155,7 @@ export class Gameboard {
         // Add the ship.
         const index = this.#ships.length;
         this.#ships.push(ship);
+        this.#shipsLocation.push({ orientation, x, y });
         // Update the board with the ship index.
         if (orientation == Orientation.HORIZONTAL) {
             for (let px = x; px < x + ship.length; px++) {
@@ -145,7 +177,6 @@ export class Gameboard {
      * @property {number} ship - The type the ship hit, or WaterValue (-1) if it was a miss or an invalid attack (already shot).
      * @property {boolean} [sunk] - Optional. Present only on a successful hit on a ship. True if the hit caused the ship to sink, false otherwise.
      */
-
     /**
      * Processes an attack on the given coordinates.
      * Marks the cell as attacked and determines if a ship was hit.
@@ -179,6 +210,7 @@ export class Gameboard {
      */
     reset() {
         this.#ships = [];
+        this.#shipsLocation = [];
         this.#board = new Array(GameboardWidth * GameboardHeight).fill(WaterValue);
         this.#shots = new Array(GameboardWidth * GameboardHeight).fill(0);
     }

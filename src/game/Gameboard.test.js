@@ -36,7 +36,7 @@ describe("gameboard", () => {
     describe('gameboard contains ships', () => {
         it('should allow to place ships horizontally inside the board boundaries', () => {
             const shipType   = ShipType.CARRIER;
-            const shipLength = new Ship(shipType).length;
+            const shipLength = Ship.getShipTypeLength(shipType);
             // Try to place the carrier horizontally in every allowed cell.
             for (let y = 0; y < gameboard.height; y++) {
                 for(let x = 0; x < gameboard.width - shipLength; x++) {
@@ -62,7 +62,7 @@ describe("gameboard", () => {
 
         it('should allow to place ships vertically inside the board boundaries', () => {
             const shipType   = ShipType.CARRIER;
-            const shipLength = new Ship(shipType).length;
+            const shipLength = Ship.getShipTypeLength(shipType);
             // Try to place the carrier vertically in every allowed cell.
             for (let x = 0; x < gameboard.width; x++) {
                 for(let y = 0; y < gameboard.height - shipLength; y++) {
@@ -88,7 +88,7 @@ describe("gameboard", () => {
 
         it('should not allow to place ships outside boundaries', () => {
             const shipType   = ShipType.CARRIER;
-            const shipLength = new Ship(shipType).length;
+            const shipLength = Ship.getShipTypeLength(shipType);
             // Try to place the carrier horizontally outside boundaries.
             for (let y = 0; y < gameboard.height; y++) {
                 expect(gameboard.placeShip(-1, y, Orientation.HORIZONTAL, shipType)).toBeFalsy();
@@ -101,18 +101,31 @@ describe("gameboard", () => {
             }
         });
 
+        it('should not allow to place the same ships twice', () => {
+            expect(gameboard.placeShip(0, 0, Orientation.HORIZONTAL, ShipType.CARRIER)).toBeTruthy();
+            expect(gameboard.placeShip(0, 1, Orientation.HORIZONTAL, ShipType.CARRIER)).toBeFalsy();
+            expect(gameboard.placeShip(0, 2, Orientation.HORIZONTAL, ShipType.BATTLESHIP)).toBeTruthy();
+            expect(gameboard.placeShip(0, 3, Orientation.HORIZONTAL, ShipType.BATTLESHIP)).toBeFalsy();
+            expect(gameboard.placeShip(0, 4, Orientation.HORIZONTAL, ShipType.DESTROYER)).toBeTruthy();
+            expect(gameboard.placeShip(0, 5, Orientation.HORIZONTAL, ShipType.DESTROYER)).toBeFalsy();
+            expect(gameboard.placeShip(0, 6, Orientation.HORIZONTAL, ShipType.SUBMARINE)).toBeTruthy();
+            expect(gameboard.placeShip(0, 7, Orientation.HORIZONTAL, ShipType.SUBMARINE)).toBeFalsy();
+            expect(gameboard.placeShip(0, 8, Orientation.HORIZONTAL, ShipType.PATROLBOAT)).toBeTruthy();
+            expect(gameboard.placeShip(0, 9, Orientation.HORIZONTAL, ShipType.PATROLBOAT)).toBeFalsy();
+        });
+
         it('should not allow to place ships on top of other ships', () => {
             expect(gameboard.placeShip(0, 0, Orientation.HORIZONTAL, ShipType.CARRIER)).toBeTruthy();
-            expect(gameboard.placeShip(0, 0, Orientation.HORIZONTAL, ShipType.CARRIER)).toBeFalsy();
-            expect(gameboard.placeShip(4, 0, Orientation.HORIZONTAL, ShipType.CARRIER)).toBeFalsy();
+            expect(gameboard.placeShip(0, 0, Orientation.HORIZONTAL, ShipType.PATROLBOAT)).toBeFalsy();
+            expect(gameboard.placeShip(4, 0, Orientation.HORIZONTAL, ShipType.PATROLBOAT)).toBeFalsy();
             expect(gameboard.placeShip(1, 0, Orientation.HORIZONTAL, ShipType.PATROLBOAT)).toBeFalsy();
-            expect(gameboard.placeShip(5, 0, Orientation.HORIZONTAL, ShipType.CARRIER)).toBeTruthy();
+            expect(gameboard.placeShip(5, 0, Orientation.HORIZONTAL, ShipType.BATTLESHIP)).toBeTruthy();
             gameboard.reset();
             expect(gameboard.placeShip(0, 0, Orientation.VERTICAL, ShipType.CARRIER)).toBeTruthy();
-            expect(gameboard.placeShip(0, 0, Orientation.VERTICAL, ShipType.CARRIER)).toBeFalsy();
-            expect(gameboard.placeShip(0, 4, Orientation.VERTICAL, ShipType.CARRIER)).toBeFalsy();
+            expect(gameboard.placeShip(0, 0, Orientation.VERTICAL, ShipType.PATROLBOAT)).toBeFalsy();
+            expect(gameboard.placeShip(0, 4, Orientation.VERTICAL, ShipType.PATROLBOAT)).toBeFalsy();
             expect(gameboard.placeShip(0, 1, Orientation.VERTICAL, ShipType.PATROLBOAT)).toBeFalsy();
-            expect(gameboard.placeShip(0, 5, Orientation.VERTICAL, ShipType.CARRIER)).toBeTruthy();
+            expect(gameboard.placeShip(0, 5, Orientation.VERTICAL, ShipType.BATTLESHIP)).toBeTruthy();
         });
 
         it('should not allow to place ship with an invalid orientation', () => {
@@ -129,6 +142,26 @@ describe("gameboard", () => {
             expect(() => gameboard.placeShip(5, 5, Orientation.HORIZONTAL, {})).toThrow(TypeError);
             expect(() => gameboard.placeShip(5, 5, Orientation.HORIZONTAL, null)).toThrow(TypeError);
             expect(() => gameboard.placeShip(5, 5, Orientation.HORIZONTAL, undefined)).toThrow(TypeError);
+        });
+
+        it('should allow to retrieve the location of the ships', () => {
+            expect(() => gameboard.getShipLocation(ShipType.CARRIER))   .toThrow();
+            expect(() => gameboard.getShipLocation(ShipType.BATTLESHIP)).toThrow();
+            expect(() => gameboard.getShipLocation(ShipType.DESTROYER)) .toThrow();
+            expect(() => gameboard.getShipLocation(ShipType.SUBMARINE)) .toThrow();
+            expect(() => gameboard.getShipLocation(ShipType.PATROLBOAT)).toThrow();
+
+            gameboard.placeShip(1, 8, Orientation.HORIZONTAL, ShipType.CARRIER);
+            gameboard.placeShip(8, 3, Orientation.VERTICAL, ShipType.BATTLESHIP);
+            gameboard.placeShip(0, 2, Orientation.VERTICAL, ShipType.DESTROYER);
+            gameboard.placeShip(2, 6, Orientation.HORIZONTAL, ShipType.SUBMARINE);
+            gameboard.placeShip(3, 0, Orientation.HORIZONTAL, ShipType.PATROLBOAT);
+
+            expect(gameboard.getShipLocation(ShipType.CARRIER))   .toMatchObject({orientation: Orientation.HORIZONTAL, x: 1, y: 8});
+            expect(gameboard.getShipLocation(ShipType.BATTLESHIP)).toMatchObject({orientation: Orientation.VERTICAL, x: 8, y: 3});
+            expect(gameboard.getShipLocation(ShipType.DESTROYER)) .toMatchObject({orientation: Orientation.VERTICAL, x: 0, y: 2});
+            expect(gameboard.getShipLocation(ShipType.SUBMARINE)) .toMatchObject({orientation: Orientation.HORIZONTAL, x: 2, y: 6});
+            expect(gameboard.getShipLocation(ShipType.PATROLBOAT)).toMatchObject({orientation: Orientation.HORIZONTAL, x: 3, y: 0});
         });
     });
 
