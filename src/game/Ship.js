@@ -30,19 +30,8 @@ export class Ship {
      * @throws {TypeError} if the provided type is not a valid ship type.
      */
     constructor(type) {
-        if (!ShipType.isValid(type)) {
-            throw TypeError(`invalid ship type, received ${type}`);
-        }
-        // Set the length for each ship type.
-        switch (type) {
-            case ShipType.CARRIER:    this.#length = 5; break;
-            case ShipType.BATTLESHIP: this.#length = 4; break;
-            case ShipType.DESTROYER:  this.#length = 3; break;
-            case ShipType.SUBMARINE:  this.#length = 3; break;
-            default:                  this.#length = 2; break;
-        }
-        // Save the ship type.
-        this.#type = type;
+        this.#length = Ship.getShipTypeLength(type);
+        this.#type   = type;
     }
 
     /**
@@ -84,5 +73,25 @@ export class Ship {
      */
     hit() {
         this.#hits = Math.min(this.#hits + 1, this.#length);
+    }
+
+    /**
+     * Gets the length for each type of ship.
+     * @param {number} type - The type of the ship (must be a valid value from ShipType enum).
+     * @returns {number} Length.
+     * @throws {TypeError} if the provided type is not a valid ship type.
+     */
+    static getShipTypeLength(type) {
+        if (!ShipType.isValid(type)) {
+            throw TypeError(`invalid ship type, received ${type}`);
+        }
+        // Set the length for each ship type.
+        switch (type) {
+            case ShipType.CARRIER:    return 5;
+            case ShipType.BATTLESHIP: return 4;
+            case ShipType.DESTROYER:  return 3;
+            case ShipType.SUBMARINE:  return 3;
+            default:                  return 2;
+        }
     }
 }

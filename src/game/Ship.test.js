@@ -2,6 +2,25 @@ import { Ship } from "./Ship.js";
 import { ShipType } from "./ShipType.js";
 
 describe('ship', () => {
+    describe('ship length can be retrieved', () => {
+        it('should return the right length for each valid ship type', () => {
+            expect(Ship.getShipTypeLength(ShipType.CARRIER)).toBe(5);
+            expect(Ship.getShipTypeLength(ShipType.BATTLESHIP)).toBe(4);
+            expect(Ship.getShipTypeLength(ShipType.DESTROYER)).toBe(3);
+            expect(Ship.getShipTypeLength(ShipType.SUBMARINE)).toBe(3);
+            expect(Ship.getShipTypeLength(ShipType.PATROLBOAT)).toBe(2);
+        });
+
+        it('should throw if the ship type is not valid', () => {
+            expect(() => Ship.getShipTypeLength(-1)).toThrow(TypeError);
+            expect(() => Ship.getShipTypeLength(5)).toThrow(TypeError);
+            expect(() => Ship.getShipTypeLength('a')).toThrow(TypeError);
+            expect(() => Ship.getShipTypeLength({})).toThrow(TypeError);
+            expect(() => Ship.getShipTypeLength(null)).toThrow(TypeError);
+            expect(() => Ship.getShipTypeLength(undefined)).toThrow(TypeError);
+        });
+    });
+
     describe('ship can be instantiated', () => {
         it('should have length', () => {
             const ship = new Ship(ShipType.PATROLBOAT);
@@ -10,7 +29,7 @@ describe('ship', () => {
             expect(ship.length).toBe(2);
         });
 
-        it('should have the right length for each type of ship', () => {
+        it('should have the right length for each valid ship type', () => {
             expect(new Ship(ShipType.CARRIER).length).toBe(5);
             expect(new Ship(ShipType.BATTLESHIP).length).toBe(4);
             expect(new Ship(ShipType.DESTROYER).length).toBe(3);
@@ -32,7 +51,7 @@ describe('ship', () => {
       
         it('should throw if the ship type is not valid', () => {
             expect(() => new Ship(-1)).toThrow(TypeError);
-            expect(() => new Ship( 6)).toThrow(TypeError);
+            expect(() => new Ship(5)).toThrow(TypeError);
             expect(() => new Ship('a')).toThrow(TypeError);
             expect(() => new Ship({})).toThrow(TypeError);
             expect(() => new Ship(null)).toThrow(TypeError);
