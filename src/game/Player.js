@@ -1,10 +1,11 @@
 import { Gameboard } from "./Gameboard.js";
 
 export class Player {
+    /** @protected @type {Gameboard} */
     _gameboard;
 
     constructor(gameboard) {
-        if (gameboard instanceof Gameboard) {
+        if (!(gameboard instanceof Gameboard)) {
             throw TypeError(`gameboard must be a Gameboard, received: ${typeof gameboard}`);
         }
 
