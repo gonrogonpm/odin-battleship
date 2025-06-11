@@ -1,5 +1,7 @@
 import { Gameboard } from "./game/Gameboard";
 import { Display } from "./Display";
+import { ShipSelector } from "./ShipSelector";
+import { Ship } from "./game/Ship";
 
 /**
  * Defines a game view class to handle the rendering of a game state.
@@ -9,6 +11,8 @@ export class GameView {
     _displayPlayer;
     /** @protected @type {Display} Enemy display. */
     _displayEnemy;
+    /** @protected @type {ShipSelector} Component to select the ship to place in the board. */
+    _shipSelector;
     /** @protected @type {HTMLElement} Element to display messages to the user. */
     _console;
     /** @protected @type {HTMLDialogElement} Element to show the gameover dialog. */
@@ -25,6 +29,7 @@ export class GameView {
         const elemDisplayEnemy  = document.getElementById('display-enemy');
         const elemConsole       = document.getElementById('console');
         const elemGameover      = document.getElementById('gameover');
+        const elemShipSelector  = document.getElementById('ship-selector');
 
         if (!(elemDisplayPlayer instanceof HTMLElement)) {
             throw Error('player display not found');
@@ -42,8 +47,13 @@ export class GameView {
             throw Error('gameover not found');
         }
 
+        if (!(elemShipSelector instanceof HTMLElement)) {
+            throw Error('ship selector not found');
+        }
+
         this._displayPlayer = new Display(elemDisplayPlayer);
         this._displayEnemy  = new Display(elemDisplayEnemy);
+        this._shipSelector  = new ShipSelector(elemShipSelector);
         this._console       = elemConsole;
         this._gameover      = elemGameover;
 
@@ -70,6 +80,7 @@ export class GameView {
         this._displayPlayer.setupDisplay();
         this._displayEnemy.setupDisplay();
         this._displayEnemy.hide();
+        this._shipSelector.setup();
     }
 
     /**
@@ -85,6 +96,18 @@ export class GameView {
     }
 
     /**
+     * Sets the callback function to be executed when the cursor is over a cell on the player's board.
+     * @param {function(x: number, y:number): void | null} callback - The function to call, or null to remove.
+     */
+    set onPlayerCellOver(callback) {
+        if (typeof callback !== 'function' && callback !== null) {
+            throw TypeError('callback must be a function');
+        }
+
+        this._displayPlayer.onCellOver = callback;
+    }
+
+    /**
      * Sets the callback function to be executed when a cell on the enemy's board is clicked.
      * @param {function(x: number, y:number): void | null} callback - The function to call, or null to remove.
      */
@@ -96,10 +119,28 @@ export class GameView {
         this._displayEnemy.onCellClick = callback;
     }
 
-    set onRestart(callback) {
+    /**
+     * Sets the callback function to be executed when ship orientation is changed in the ship selector UI.
+     * @param {function(orientation: number): void | null} callback - The function to call, or null to remove.
+     */
+    set onShipOrientationChanged(callback) {
         if (typeof callback !== 'function' && callback !== null) {
             throw TypeError('callback must be a function');
         }
+
+        this._shipSelector.onOrientationChanged = callback;
+    }
+
+    /**
+     * Sets the callback function to be executed when a ship is selected in the ship selector UI.
+     * @param {function(orientation: number, type: number): void | null} callback - The function to call, or null to remove.
+     */
+    set onShipSelected(callback) {
+        if (typeof callback !== 'function' && callback !== null) {
+            throw TypeError('callback must be a function');
+        }
+
+        this._shipSelector.onShipSelected = callback;
     }
 
     /**
@@ -144,8 +185,51 @@ export class GameView {
         if (enemy  !== null) { this._displayEnemy.setEnemyWaters(enemy); }
     }
 
+    /**
+     * Highlights the cell where a ship will be placed.
+     * 
+     * @param {number} orientation - The orientation of the ship (use a value from the Orientation enum).
+     * @param {number} type - The type of the ship (use a value from the ShipType enum).
+     * @param {number} x - The starting x-coordinate of the ship (top-leftmost part).
+     * @param {number} y - The starting y-coordinate of the ship (top-leftmost part).
+     */
+    highlightShipPlacementTry(orientation, type, x, y) {
+        this._displayPlayer.clearHighlight();
+        this._displayPlayer.highlight(orientation, x, y, Ship.getShipTypeLength(type));
+    }
+
+    /**
+     * Clears the cells highlighted by the last ship placement try.
+     */
+    clearShipPlacementTry() {
+        this._displayPlayer.clearHighlight();
+    }
+
+    /**
+     * Marks a ship in the ship selector as placed.
+     * @param {number} type - The type of the ship (use a value from the ShipType enum).
+     */
+    setShipAsPlaced(type) {
+        this.clearShipPlacementTry();
+        this._shipSelector.setAsPlaced(type);
+    }
+
+    /**
+     * Shows the ship selector.
+     */
+    showShipSelector() {
+        this._shipSelector.show();
+    }
+
+    /**
+     * Hides the ship selector.
+     */
+    hideShipSelector() {
+        this._shipSelector.hide();
+    }
+
     setConsoleMessage(msg) {
-        this._console.textContent = msg;
+        this._console.innerHTML = msg;
     }
 
     showGameover(msg) {

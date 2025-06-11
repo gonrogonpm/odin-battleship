@@ -20,11 +20,26 @@ export class Display {
     #cells;
 
     /**
+     * @typedef {object} Coordinate
+     * @property {number} x - X-coordinate of the start position of the ship.
+     * @property {number} y - Y-coordinate of the start position of the ship.
+     */
+    /** @private @type {Coordinate[]} Array of highlighted cell coordinates. */
+    #highlight = [];
+
+    /**
      * A callback function to be executed when a valid cell is clicked.
      * The function will receive the x and y coordinates of the clicked cell. 
      * @type {function(x: number, y: number): void | null} 
      */
     onCellClick = null;
+
+    /**
+     * A callback function to be executed when cursor is over a cell.
+     * The function will receive the x and y coordinates of the cell.
+     * @type {function(x: number, y: number): void | null}
+     */
+    onCellOver = null;
 
     /**
      * Creates an instance of the display.
@@ -64,6 +79,7 @@ export class Display {
         }));
 
         this.#board.addEventListener('click', event => this.#handleCellClick(event));
+        this.#board.addEventListener('mouseover', event => this.#handleCellOver(event));
     }
 
     /**
@@ -159,6 +175,46 @@ export class Display {
     }
 
     /**
+     * Highlights a cell.
+     * @param {number} x - X-coordinate of the cell.
+     * @param {number} y - Y-coordinate of the cell.
+     */
+    highlightCell(x, y) {
+        this.#highlight.push(this.#getCellIndex(x, y));
+        this.#cells[this.#getCellIndex(x, y)].classList.add('highlight');
+    }
+
+    /**
+     * Highlights a group of cells.
+     * @param {number} orientation - Orientation of area to highlight (use a value from the Orientation enum).
+     * @param {number} x - The starting x-coordinate (top-leftmost part).
+     * @param {number} y - The starting y-coordinate (top-leftmost part).
+     * @param {number} size - Number of cells to highlight from the starting position following the orientation.
+     */
+    highlight(orientation, x, y, size) {
+        if (orientation == Orientation.HORIZONTAL) {
+            for (let i = x; i < x + size && i < GameboardWidth; i++) {
+                this.highlightCell(i, y);
+            }
+        }
+        else {
+            for (let i = y; i < y + size && i < GameboardHeight; i++) {
+                this.highlightCell(x, i);
+            }
+        }
+    }
+
+    /**
+     * Clears the highlighted cells.
+     */
+    clearHighlight() {
+        for (let index of this.#highlight) {
+            this.#cells[index].classList.remove('highlight');
+        }
+        this.#highlight = [];
+    }
+
+    /**
      * Hides the entire display component.
      */
     hide() {
@@ -197,6 +253,25 @@ export class Display {
         }
 
         this.onCellClick?.(x, y);
+    }
+
+    /**
+     * Handles over events delegated from the board container element.
+     * @private
+     * @param {MouseEvent} event - The mouseover event object.
+     */
+    #handleCellOver(event) {
+        const cell = event.target.closest('.cell');
+        if (!cell) {
+            return;
+        }
+
+        const x = parseInt(cell.dataset.x);
+        const y = parseInt(cell.dataset.y);
+        if (isNaN(x) || x < 0 || x >= GameboardWidth)  { return; }
+        if (isNaN(y) || y < 0 || y >= GameboardHeight) { return; }
+
+        this.onCellOver?.(x, y);
     }
 
     /**

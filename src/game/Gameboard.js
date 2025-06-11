@@ -87,6 +87,15 @@ export class Gameboard {
     }
 
     /**
+     * Checks if the gameboard contains a type of ship.
+     * @param {number} type - The type of the ship (use a value from the ShipType enum).
+     * @returns True if the game board has a ship of the specified type, false otherwise.
+     */
+    hasShip(type) {
+        return this.#ships.findIndex(ship => ship.type == type) >= 0;
+    }
+
+    /**
      * Gets the location of a ship.
      * @param {number} type - The type of the ship (use a value from the ShipType enum).
      * @returns {ShipLocation} An object with the location of the ship.
@@ -99,6 +108,91 @@ export class Gameboard {
         }
 
         return this.#shipsLocation[index];
+    }
+
+    /**
+     * Tries to fubd a location to place a ship of a given type at the specified coordinates and orientation.
+     * Performs checks for boundaries and overlaps.
+     * 
+     * NOTE: This method does not insert the ship in the gameboard, it only check if there is a valid position where
+     * to place the ship around the starting coordinate passed as argument.
+     * @see placeShip
+     * 
+     * @param {number} x - The starting x-coordinate of the ship (top-leftmost part).
+     * @param {number} y - The starting y-coordinate of the ship (top-leftmost part).
+     * @param {number} orientation - The orientation of the ship (use a value from the Orientation enum).
+     * @param {number} type - The type of the ship (use a value from the ShipType enum).
+     * @returns {ShipLocation | null} A ship location if a valid location is found around the starting coordinate, false otherwise.
+     * @throws {TypeError} If the provided orientation or type is invalid.
+     */
+    tryPlaceShip(x, y, orientation, type) {
+        if (!Orientation.isValid(orientation)) {
+            throw TypeError(`orientation must be a valid orientation, received: ${orientation}`);
+        }
+
+        if (this.#ships.findIndex(ship => ship.type === type) >= 0) {
+            return null;
+        }
+
+        const ship = new Ship(type);
+        // Check starting coordinates are within bounds before calculating end points.
+        if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
+            return false;
+        }
+
+        let newX = x;
+        let newY = y;
+        // Boundaries check.
+        if (orientation == Orientation.HORIZONTAL) {
+            newX = -1;
+            for (let i = 0; i < ship.length && newX < 0; i++) {
+                const testX = x - i;
+                // Check if the new position is valid.
+                if (testX < 0 || testX + ship.length > this.width) {
+                    continue;
+                }
+                // Overlap checks.
+                let overlap = false;
+                for (let px = testX; px < testX + ship.length && !overlap; px++) {
+                    if (!this.isWater(px, y)) {
+                        overlap = true;
+                    }
+                }
+                if (overlap) {
+                    continue;
+                }
+                // Position is OK!
+                newX = testX;
+            }
+        }
+        else {
+            newY = -1;
+            for (let i = 0; i < ship.length && newY < 0; i++) {
+                const testY = y - i;
+                // Check if the new position is valid.
+                if (testY < 0 || testY + ship.length > this.width) {
+                    continue;
+                }
+                // Overlap checks.
+                let overlap = false;
+                for (let py = testY; py < testY + ship.length && !overlap; py++) {
+                    if (!this.isWater(x, py)) {
+                        overlap = true;
+                    }
+                }
+                if (overlap) {
+                    continue;
+                }
+                // Position is OK!
+                newY = testY;
+            }
+        }
+
+        if (newX < 0 || newY  < 0) {
+            return null;
+        }
+
+        return { orientation, x: newX, y: newY };
     }
 
     /**

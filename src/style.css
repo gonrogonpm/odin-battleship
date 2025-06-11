@@ -16,10 +16,17 @@
     /* Text colors - Define text colors for different contexts */
     --color-text-primary: #e2e2e2;
     --color-text-ui: #dda836;
+    --color-text-disabled: #555555;
+    --color-text-confirmation: #b3c000;
+    --color-text-error: #e65400;
 
     /* Boxes */
     --color-border-primary: #866300;
     --color-border-light: var(--color-text-ui);
+    --color-border-selected: #c3d100;
+    --color-background-selected: #7d8600;
+    --color-border-disabled: #555555;
+    --color-background-disabled: #292929;
 
     /* Main font - Apply default font settings to the root element */
     font-family: var(--font-family-base);
@@ -83,6 +90,63 @@ main {
     padding: 1rem;
 }
 
+#console span {
+    font-weight: bold;
+}
+
+#console span.confirmation {
+    color: var(--color-text-confirmation);
+}
+
+#console span.error {
+    color: var(--color-text-error);
+}
+
+#ship-selector {
+    border: 1px solid var(--color-border-primary);
+}
+
+#ship-selector.hidden {
+    display: none;
+}
+
+#ship-selector .orientation {
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+#ship-selector .orientation button {
+    text-transform: capitalize;
+    font-size: 1rem;
+}
+
+#ship-selector .ships {
+    border-top: 1px solid var(--color-border-primary);
+    padding: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+#ship-selector .ships button {
+    text-transform: capitalize;
+    font-size: 1rem;
+}
+
+#ship-selector .ships .selected {
+    background-color: var(--color-background-selected);
+    border: 1px solid var(--color-border-selected);
+    color: var(--color-text-primary);
+}
+
+#ship-selector .ships .placed {
+    background-color: var(--color-background-disabled);
+    border: 1px solid var(--color-border-disabled);
+    color: var(--color-text-disabled);
+}
+
 .display .title {
     padding-bottom: 2rem;
     font-size: 1.2rem;
@@ -121,12 +185,12 @@ main {
 **************************************************************/
 
 .cell.ship {
-    background-color: #b48400;
+    background-color: #838383;
     color: #222;
 }
 
 .cell.shot {
-    background-color: #382800;
+    background-color: #284764;
 }
 
 .cell.shot.ship {
@@ -137,11 +201,13 @@ main {
     background-color: #d1442b;
 }
 
+.cell.highlight {
+    background-color: #f5be26;
+}
+
 /**************************************************************
  Dialog
 **************************************************************/
-
-
 
 dialog {
     position: absolute;

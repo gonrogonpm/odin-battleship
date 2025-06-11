@@ -24,8 +24,6 @@ export class GameControllerSolo extends GameController {
     }
 
     setup(restart = false) {
-        this.runPlayerPlacement();
-        this.runComputerPlacement();
 
         if (!restart) {
             this._view.setup();
@@ -36,6 +34,8 @@ export class GameControllerSolo extends GameController {
     }
 
     async start() {
+        this.runComputerPlacement();
+        await this.runPlayerPlacement();
         await this.runInitialSequence();
         await this.runHumanTurn();
     }
@@ -133,12 +133,8 @@ export class GameControllerSolo extends GameController {
             this.start();
         }
         else {
-
+            this._view.hideGameover();
         }
-    }
-
-    handlePlayerCellClick() {
-
     }
 
     handleEnemyCellClick(x, y) {
@@ -146,16 +142,81 @@ export class GameControllerSolo extends GameController {
         this.runHumanShot(x, y);
     }
 
-    runPlayerPlacement() {
-        // Open ship placement interface.
-        // Wait the user to place the ships.
-        // Open the human player interface.
-        /* Test board */
-        this._playerHumanGameboard.placeShip(0, 0, Orientation.HORIZONTAL, ShipType.CARRIER);
-        this._playerHumanGameboard.placeShip(3, 3, Orientation.HORIZONTAL, ShipType.SUBMARINE);
-        this._playerHumanGameboard.placeShip(1, 2, Orientation.VERTICAL, ShipType.BATTLESHIP);
-        this._playerHumanGameboard.placeShip(7, 9, Orientation.HORIZONTAL, ShipType.DESTROYER);
-        this._playerHumanGameboard.placeShip(8, 5, Orientation.VERTICAL, ShipType.PATROLBOAT);
+    async runPlayerPlacement() {
+        this._view.setConsoleMessage(Messages.MSG_DEPLOYMENT);
+        this._view.showShipSelector();
+        await this.runPlayerShipPlacement();
+        await this.runPlayerShipPlacement();
+        await this.runPlayerShipPlacement();
+        await this.runPlayerShipPlacement();
+        await this.runPlayerShipPlacement();
+        this._view.hideShipSelector();
+    }
+
+    async runPlayerShipPlacement() {
+        let placement = {
+            selected:    false,
+            orientation: Orientation.HORIZONTAL,
+            type:        ShipType.CARRIER,
+            x:           -1,
+            y:           -1
+        };
+
+        this._view.onShipSelected = (orientation, type) => {
+            this._view.setConsoleMessage(Messages.replace(Messages.MSG_PLACESHIP, ShipType.toString(type)));
+            this._view.clearShipPlacementTry();
+            placement.selected    = true;
+            placement.orientation = orientation;
+            placement.type        = type;
+            placement.x           = -1;
+            placement.y           = -1;
+        };
+
+        this._view.onShipOrientationChanged = (orientation) => {
+            this._view.clearShipPlacementTry();
+            placement.orientation = orientation;
+            placement.x           = -1;
+            placement.y           = -1;
+        }
+        
+        this._view.onPlayerCellOver = (x, y) => {
+            if (!placement.selected) {
+                return;
+            }
+
+            const location = this._playerHumanGameboard.tryPlaceShip(x, y, placement.orientation, placement.type)
+            if (!location) {
+                return;
+            }
+
+            placement.x = location.x;
+            placement.y = location.y;
+            this._view.highlightShipPlacementTry(placement.orientation, placement.type, placement.x, placement.y);
+        }
+
+        await new Promise(resolve => {
+            this._view.onPlayerCellClick = (x, y) => {
+                if (!placement.selected) {
+                    return;
+                }
+
+                if (this._playerHumanGameboard.placeShip(placement.x, placement.y, placement.orientation, placement.type)) {
+                    this._view.setConsoleMessage(Messages.replace(Messages.MSG_SHIPREADY, ShipType.toString(placement.type)));
+                    resolve();
+                }
+                else {
+                    this._view.setConsoleMessage(Messages.replace(Messages.MSG_SHIPERROR, ShipType.toString(placement.type), placement.x, placement.y));
+                }
+            };
+        });
+        // Remove the callbacks.
+        this._view.onShipSelected           = null;
+        this._view.onShipOrientationChanged = null;
+        this._view.onPlayerCellOver         = null;
+        this._view.onPlayerCellClick        = null;
+        // Ship is placed, update the display.
+        this._view.setShipAsPlaced(placement.type);
+        this._view.updatePlayerDisplay(this._playerHumanGameboard);
     }
 
     runComputerPlacement() {
